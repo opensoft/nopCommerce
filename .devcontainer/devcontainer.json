@@ -1,0 +1,52 @@
+{
+  "name": "nopCommerce Development Container",
+  "forwardPorts": [80, 443, 5000, 5001],
+  //"remoteUser": "vscode",
+  //"containerUser": "vscode",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csdevkit", // C# Dev Kit
+        "ms-dotnettools.csharp", // Core C# support (required by Dev Kit)
+        "fernandoescolar.vscode-solution-explorer",
+        //"jchannon.csharpextensions",
+        //"dotnetcoretutorials.razor-plus",
+        "esbenp.prettier-vscode",
+        "ms-mssql.mssql",
+        //"humao.rest-client",
+        "ms-azuretools.vscode-docker",
+        "eamodio.gitlens",
+        "streetsidesoftware.code-spell-checker",
+        "vscode-icons-team.vscode-icons",
+        "visualstudioexptteam.vscodeintellicode",
+        "ms-vscode.js-debug-chrome", // Or ms-vscode.js-debug-edge depending on your browser.
+        //"ritwickdey.LiveServer",
+        "dbaeumer.vscode-eslint", //Javascript linter.
+        "ms-vscode.live-server",
+        //"grapecity.gc-excelviewer",
+        "mtxr.sqltools"
+      ],
+      "settings": {
+        "terminal.integrated.profiles.linux": {
+          "nopCommerce bash": {
+            "path": "/bin/bash"
+          }
+        },
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "debug.node.autoAttach": "disabled"
+      }
+    }
+  },
+  "dockerComposeFile": "./docker-compose.yml",
+  "service": "nopcommerce_web",
+  "workspaceFolder": "/workspace", // Updated to include the parent directory of .vscode
+  "shutdownAction": "stopCompose",
+  "mounts": [
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/nopCommerce/.ssh,type=bind,consistency=cached",
+    "source=${localWorkspaceFolder}/src,target=/workspace/src,type=bind,consistency=cached",
+    "source=${localWorkspaceFolder}/.vscode,target=/workspace/.vscode,type=bind,consistency=cached" // Adjusted target path
+  ],
+  // The dockerfile moved the built src to the bin folder to keep it safe from the mounted src folder.
+  // Now we need to copy it back to the src folder.
+  "postStartCommand": "[ -d /workspace/bin ] && rsync -a --delete /workspace/bin/ /workspace/src/ && rm -rf /workspace/bin || echo '/workspace/bin does not exist, skipping rsync'"
+}
