@@ -213,3 +213,6 @@ src/Tests/Nop.Tests/Connections.resx
 ##   Plugin repos for nopCommerce   ##
 ##                                  ##      
 ######################################src/Plugins/Nop.Plugin.Opensoft.SEO/
+
+# Dev container environment files
+.devcontainer/.env
