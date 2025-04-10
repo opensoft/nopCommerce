@@ -160,6 +160,19 @@ fi
 
 echo "Repository '$REPO_SLUG' cloned successfully into '$CLONE_DIR'."
 
+# Change to the 4.80/develop branch
+cd "$CLONE_DIR"
+log "Switching to branch '4.80/develop'..."
+git checkout 4.80/develop
+
+if [ $? -ne 0 ]; then
+  echo "Error: Failed to switch to branch '4.80/develop'."
+  cd "$CURRENT_DIR"
+  exit 1
+fi
+
+log "Switched to branch '4.80/develop' successfully."
+
 # Update the .gitignore file two levels up
 if [ -f "$GITIGNORE_PATH" ]; then
   echo "Updating .gitignore located at '$GITIGNORE_PATH'..."
