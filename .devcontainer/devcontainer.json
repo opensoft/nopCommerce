@@ -1,8 +1,7 @@
 {
   "name": "nopCommerce Development Container",
   "forwardPorts": [80, 443, 5000, 5001],
-  //"remoteUser": "vscode",
-  //"containerUser": "vscode",
+  "remoteUser": "${localEnv:USER}", // Dynamically use the host user when attaching to the container
   "customizations": {
     "vscode": {
       "extensions": [
@@ -41,12 +40,10 @@
   "service": "nopcommerce_web",
   "workspaceFolder": "/workspace", // Updated to include the parent directory of .vscode
   "shutdownAction": "stopCompose",
+  "overrideCommand": false, // Added to prevent overriding the container's default command
   "mounts": [
-    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/nopCommerce/.ssh,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.ssh,target=/home/${localEnv:USER}/.ssh,type=bind,consistency=cached", // Dynamically use the host user
     "source=${localWorkspaceFolder}/src,target=/workspace/src,type=bind,consistency=cached",
     "source=${localWorkspaceFolder}/.vscode,target=/workspace/.vscode,type=bind,consistency=cached" // Adjusted target path
-  ],
-  // The dockerfile moved the built src to the bin folder to keep it safe from the mounted src folder.
-  // Now we need to copy it back to the src folder.
-  "postStartCommand": "[ -d /workspace/bin ] && rsync -a --delete /workspace/bin/ /workspace/src/ && rm -rf /workspace/bin || echo '/workspace/bin does not exist, skipping rsync'"
+  ]
 }

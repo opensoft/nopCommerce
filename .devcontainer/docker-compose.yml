@@ -5,9 +5,18 @@ services:
         build:
             context: ..
             dockerfile: ./.devcontainer/Dockerfile
+            args:
+                IDE_USER: "${USER:-defaultuser}"  # Default to 'defaultuser' if USER is not set
+                IDE_UID: ${USERID:-1000}         # Default to '1000' if USERID is not set
+                IDE_GID: ${GROUPID:-1000}        # Default to '1000' if GROUPID is not set
+        user: "${USER:-defaultuser}"
+        environment:
+            - USER=${USER:-defaultuser}
+            - USERID=${USERID:-1000}
+            - GROUPID=${GROUPID:-1000}
         container_name: nopcommerce
         ports:
-            - "80:80"
+            - "8080:8080"
         depends_on:
             nopcommerce_database:
                 condition: service_started

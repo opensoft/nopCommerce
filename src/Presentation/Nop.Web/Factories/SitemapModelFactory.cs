@@ -505,7 +505,7 @@ public partial class SitemapModelFactory : ISitemapModelFactory
 
             await writer.WriteStartElementAsync("xhtml", "link", null);
             await writer.WriteAttributeStringAsync(null, "rel", null, "alternate");
-            await writer.WriteAttributeStringAsync(null, "hreflang", null, lang.UniqueSeoCode);
+            await writer.WriteAttributeStringAsync(null, "SEO", null, lang.UniqueSeoCode);
             await writer.WriteAttributeStringAsync(null, "href", null, altLoc);
             await writer.WriteEndElementAsync();
         }
