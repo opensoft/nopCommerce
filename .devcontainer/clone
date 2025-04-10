@@ -61,7 +61,20 @@ log "Changing to nopCommerce root directory: $NOPCOMMERCE_ROOT"
 cd "$NOPCOMMERCE_ROOT"
 
 # Check if a repository name argument is provided
-if [ -z "$2" ] && [[ "$1" != "--remove" && "$1" != "-rm" ]]; then
+if [ -z "$1" ]; then
+  echo "Usage: clone [--verbose | -v] [--remove | -rm] <repo-name>"
+  cd "$CURRENT_DIR"
+  exit 1
+fi
+
+if [[ "$1" == "--verbose" || "$1" == "-v" ]] && [ -z "$2" ]; then
+  echo "Error: The --verbose or -v option must be followed by a repository name or action."
+  echo "Usage: clone [--verbose | -v] [--remove | -rm] <repo-name>"
+  cd "$CURRENT_DIR"
+  exit 1
+fi
+
+if [[ "$1" == "--remove" || "$1" == "-rm" ]] && [ -z "$2" ]; then
   echo "Usage: clone [--verbose | -v] [--remove | -rm] <repo-name>"
   cd "$CURRENT_DIR"
   exit 1
@@ -77,7 +90,7 @@ REPO_SLUG="Nop.Plugin.Opensoft.$REPO_NAME"
 RELATIVE_REPO_DIR="src/Plugins/$REPO_SLUG"
 CLONE_DIR=$(pwd)/$RELATIVE_REPO_DIR
 GITIGNORE_PATH=$(pwd)/.gitignore
-SOLUTION_FILE=$(pwd)/NopCommerce.sln
+SOLUTION_FILE=$(pwd)/src/NopCommerce.sln
 DEVOPS_PROJECT="FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Nop%20Plugins"
 
 log "Action: $ACTION"
