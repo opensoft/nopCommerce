@@ -1,6 +1,21 @@
 #!/bin/bash
 
+# Enable verbose mode if --verbose or -v is passed
+VERBOSE=false
+if [[ "$1" == "--verbose" || "$1" == "-v" ]]; then
+  VERBOSE=true
+  shift
+fi
+
+# Function to echo messages in verbose mode
+log() {
+  if [ "$VERBOSE" = true ]; then
+    echo "[DEBUG] $1"
+  fi
+}
+
 # Ensure the script is run under the nopCommerce project folder
+log "Checking if the script is run under the nopCommerce project folder..."
 if [[ "$(pwd)" != *"/nopCommerce"* ]]; then
   echo "Error: This script must be run from within the 'nopCommerce' project folder."
   exit 1
@@ -8,7 +23,7 @@ fi
 
 # Check for help option
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-  echo "Usage: $0 <repo-name>"
+  echo "Usage: $0 [--verbose | -v] <repo-name>"
   echo "This script clones a repository into the 'src/Plugins' directory of the nopCommerce project."
   echo "clone also updates the .gitignore file to ignore the cloned repository."
   echo "Lastly, clone updates the solution file to include the new project."
@@ -18,18 +33,27 @@ if [[ "$1" == "-h" || "$1" == "--help" ]]; then
   echo
   echo "Options:"
   echo "  -h, --help    Show this help message and exit."
+  echo "  --verbose, -v Enable verbose mode for detailed debug messages."
+  echo
+  echo "Example:"
+  echo "  $0 --verbose Testplugin"
+  echo "  This will clone the repository 'Nop.Plugin.Opensoft.Testplugin' into 'src/Plugins',"
+  echo "  update the .gitignore file, and add the project to the solution file."
   exit 0
 fi
 
 # Save the current working directory
 CURRENT_DIR=$(pwd)
+log "Current directory: $CURRENT_DIR"
 
 # Change to the nopCommerce root directory
-cd "$(pwd | sed 's|\(.*nopCommerce\).*|\1|')"
+NOPCOMMERCE_ROOT=$(pwd | sed 's|\(.*nopCommerce\).*|\1|')
+log "Changing to nopCommerce root directory: $NOPCOMMERCE_ROOT"
+cd "$NOPCOMMERCE_ROOT"
 
 # Check if a repository name argument is provided
 if [ -z "$1" ]; then
-  echo "Usage: $0 <repo-name>"
+  echo "Usage: $0 [--verbose] <repo-name>"
   cd "$CURRENT_DIR"
   exit 1
 fi
@@ -41,13 +65,18 @@ RELATIVE_REPO_DIR="src/Plugins/$REPO_SLUG"
 CLONE_DIR=$(pwd)/$RELATIVE_REPO_DIR
 GITIGNORE_PATH=$(pwd)/.gitignore
 SOLUTION_FILE=$(pwd)/NopCommerce.sln
-
 DEVOPS_PROJECT="FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Nop%20Plugins"
+
+log "Repository name: $REPO_NAME"
+log "Repository slug: $REPO_SLUG"
+log "Clone directory: $CLONE_DIR"
+log "Gitignore path: $GITIGNORE_PATH"
+log "Solution file: $SOLUTION_FILE"
 
 # Clone the repository into ./src/Plugins/
 echo "Cloning repository '$REPO_SLUG'..."
-echo "Cloning using '$DEVOPS_PROJECT/$REPO_SLUG'..."
-echo "Cloning into '$CLONE_DIR'..."
+log "Cloning using '$DEVOPS_PROJECT/$REPO_SLUG'..."
+log "Cloning into '$CLONE_DIR'..."
 git clone $DEVOPS_PROJECT/$REPO_SLUG $CLONE_DIR
 
 if [ $? -ne 0 ]; then
@@ -61,19 +90,17 @@ echo "Repository '$REPO_SLUG' cloned successfully into '$CLONE_DIR'."
 # Update the .gitignore file two levels up
 if [ -f "$GITIGNORE_PATH" ]; then
   echo "Updating .gitignore located at '$GITIGNORE_PATH'..."
+  log "Checking if '$RELATIVE_REPO_DIR/' is already in .gitignore..."
   
-  # Add the cloned folder to .gitignore if not already present
   if ! grep -q "^$RELATIVE_REPO_DIR/$" "$GITIGNORE_PATH"; then
-    # Ensure the file ends with a newline
+    log "Adding '$RELATIVE_REPO_DIR/' to .gitignore..."
     if [[ -s "$GITIGNORE_PATH" && $(tail -c1 "$GITIGNORE_PATH" | wc -l) -eq 0 ]]; then
       echo "" >> "$GITIGNORE_PATH"
     fi
-    
-    # Add our entry with a trailing newline
     echo "$RELATIVE_REPO_DIR/" >> "$GITIGNORE_PATH"
     echo ".gitignore updated with '$REPO_SLUG/'."
     
-    # Commit the changes to .gitignore (optional)
+    log "Committing changes to .gitignore..."
     cd $(dirname "$GITIGNORE_PATH")
     git add .gitignore
     git commit -m "Updated .gitignore to ignore '$RELATIVE_REPO_DIR/'"
@@ -90,6 +117,7 @@ fi
 # Add the cloned project to the solution file
 if [ -f "$SOLUTION_FILE" ]; then
   echo "Adding '$RELATIVE_REPO_DIR' to the solution file '$SOLUTION_FILE'..."
+  log "Running 'dotnet sln add' for '$CLONE_DIR/$REPO_SLUG.csproj'..."
   dotnet sln "$SOLUTION_FILE" add "$CLONE_DIR/$REPO_SLUG.csproj"
   if [ $? -eq 0 ]; then
     echo "Project '$REPO_SLUG' added to the solution successfully."
@@ -101,6 +129,7 @@ else
 fi
 
 # Return to the original working directory
+log "Returning to the original working directory: $CURRENT_DIR"
 cd "$CURRENT_DIR"
 
 echo "Script completed successfully."
