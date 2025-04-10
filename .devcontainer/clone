@@ -1,0 +1,71 @@
+#!/bin/bash
+
+# Ensure the script is run under the nopCommerce project folder
+if [[ "$(pwd)" != *"/nopCommerce"* ]]; then
+  echo "Error: This script must be run from within the 'nopCommerce' project folder."
+  exit 1
+fi
+
+# Save the current working directory
+CURRENT_DIR=$(pwd)
+
+# Change to the nopCommerce root directory
+cd "$(pwd | sed 's|\(.*nopCommerce\).*|\1|')"
+
+# Check if a repository name argument is provided
+if [ -z "$1" ]; then
+  echo "Usage: $0 <repo-name>"
+  cd "$CURRENT_DIR"
+  exit 1
+fi
+
+# Variables
+REPO_NAME=$1
+REPO_SLUG="Nop.Plugin.Opensoft.$REPO_NAME"
+RELATIVE_REPO_DIR="src/Plugins/$REPO_SLUG"
+CLONE_DIR=$(pwd)/$RELATIVE_REPO_DIR
+GITIGNORE_PATH=$(pwd)/.gitignore
+
+DEVOPS_PROJECT="FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Nop%20Plugins"
+
+# Clone the repository into ./src/Plugins/
+echo "Cloning repository '$REPO_SLUG'..."
+echo "Cloning using '$DEVOPS_PROJECT/$REPO_SLUG'..."
+echo "Cloning into '$CLONE_DIR'..."
+git clone $DEVOPS_PROJECT/$REPO_SLUG $CLONE_DIR
+
+if [ $? -ne 0 ]; then
+  echo "Error: Failed to clone repository '$REPO_SLUG'."
+  cd "$CURRENT_DIR"
+  exit 1
+fi
+
+echo "Repository '$REPO_SLUG' cloned successfully into '$CLONE_DIR'."
+
+# Update the .gitignore file two levels up
+if [ -f "$GITIGNORE_PATH" ]; then
+  echo "Updating .gitignore located at '$GITIGNORE_PATH'..."
+  
+  # Add the cloned folder to .gitignore if not already present
+  if ! grep -q "^$RELATIVE_REPO_DIR/$" "$GITIGNORE_PATH"; then
+    echo "$RELATIVE_REPO_DIR/" >> "$GITIGNORE_PATH"
+    echo ".gitignore updated with '$REPO_SLUG/'."
+    
+    # Commit the changes to .gitignore (optional)
+    cd $(dirname "$GITIGNORE_PATH")
+    git add .gitignore
+    git commit -m "Updated .gitignore to ignore '$RELATIVE_REPO_DIR/'"
+    echo "Changes committed to .gitignore."
+  else
+    echo "'$REPO_SLUG/' is already present in .gitignore."
+  fi
+else
+  echo "Error: .gitignore file not found at '$GITIGNORE_PATH'."
+  cd "$CURRENT_DIR"
+  exit 1
+fi
+
+# Return to the original working directory
+cd "$CURRENT_DIR"
+
+echo "Script completed successfully."
