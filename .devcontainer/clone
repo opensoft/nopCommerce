@@ -23,25 +23,31 @@ fi
 
 # Check for help option
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-  echo "Usage: $0 [--verbose | -v] [--remove | -rm] [-h | --help] <repo-name>"
+  echo "Usage: clone [OPTIONS] <repo-name>"
+  echo
   echo "This script clones or removes a repository in the 'src/Plugins' directory of the nopCommerce project."
-  echo "When cloning, it updates the .gitignore file and the solution file to include the new project."
+  echo "When cloning, it creates a folder of the same name as the full repo name, updates the .gitignore file,"
+  echo "and adds the project to the solution file."
   echo "When removing, it deletes the folder, removes the .gitignore entry, and removes the project from the solution file."
   echo
   echo "Arguments:"
-  echo "  <repo-name>   The last word of the name of the repository to clone or remove (e.g., 'Testplugin' for the repo 'Nop.Plugin.Opensoft.Testplugin')."
+  echo "  <repo-name>       The last word of the name of the repository to clone or remove."
+  echo "                   (e.g., 'Testplugin' for the repo 'Nop.Plugin.Opensoft.Testplugin')."
   echo
   echo "Options:"
-  echo "  -h, --help    Show this help message and exit."
-  echo "  --verbose, -v Enable verbose mode for detailed debug messages."
-  echo "  --remove, -rm Remove the cloned repository, its .gitignore entry, and its solution file entry."
+  echo "  -h, --help        Show this help message and exit."
+  echo "  -v, --verbose     Enable verbose mode for detailed debug messages."
+  echo "  -rm, --remove     Remove the cloned repository, its .gitignore entry, and its solution file entry."
   echo
   echo "Examples:"
-  echo "  $0 --verbose Testplugin"
-  echo "    Clone the repository 'Nop.Plugin.Opensoft.Testplugin' into 'src/Plugins', update the .gitignore file, and add the project to the solution file."
+  echo "  clone --verbose Testplugin"
+  echo "      Clone the repository 'Nop.Plugin.Opensoft.Testplugin' into 'src/Plugins',"
+  echo "      create a folder of the same name as the full repo name, update the .gitignore file,"
+  echo "      and add the project to the solution file."
   echo
-  echo "  $0 --remove Testplugin"
-  echo "    Remove the repository 'Nop.Plugin.Opensoft.Testplugin', its .gitignore entry, and its solution file entry."
+  echo "  clone --remove Testplugin"
+  echo "      Remove the repository 'Nop.Plugin.Opensoft.Testplugin', its .gitignore entry,"
+  echo "      and its solution file entry."
   exit 0
 fi
 
@@ -56,7 +62,7 @@ cd "$NOPCOMMERCE_ROOT"
 
 # Check if a repository name argument is provided
 if [ -z "$2" ] && [[ "$1" != "--remove" && "$1" != "-rm" ]]; then
-  echo "Usage: $0 [--verbose | -v] [--remove | -rm] <repo-name>"
+  echo "Usage: clone [--verbose | -v] [--remove | -rm] <repo-name>"
   cd "$CURRENT_DIR"
   exit 1
 fi
