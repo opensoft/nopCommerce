@@ -23,22 +23,25 @@ fi
 
 # Check for help option
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-  echo "Usage: $0 [--verbose | -v] <repo-name>"
-  echo "This script clones a repository into the 'src/Plugins' directory of the nopCommerce project."
-  echo "clone also updates the .gitignore file to ignore the cloned repository."
-  echo "Lastly, clone updates the solution file to include the new project."
+  echo "Usage: $0 [--verbose | -v] [--remove | -rm] [-h | --help] <repo-name>"
+  echo "This script clones or removes a repository in the 'src/Plugins' directory of the nopCommerce project."
+  echo "When cloning, it updates the .gitignore file and the solution file to include the new project."
+  echo "When removing, it deletes the folder, removes the .gitignore entry, and removes the project from the solution file."
   echo
   echo "Arguments:"
-  echo "  <repo-name>   The last word of the name of the repository to clone (e.g., 'Testplugin' for the repo 'Nop.Plugin.Opensoft.Testplugin')."
+  echo "  <repo-name>   The last word of the name of the repository to clone or remove (e.g., 'Testplugin' for the repo 'Nop.Plugin.Opensoft.Testplugin')."
   echo
   echo "Options:"
   echo "  -h, --help    Show this help message and exit."
   echo "  --verbose, -v Enable verbose mode for detailed debug messages."
+  echo "  --remove, -rm Remove the cloned repository, its .gitignore entry, and its solution file entry."
   echo
-  echo "Example:"
+  echo "Examples:"
   echo "  $0 --verbose Testplugin"
-  echo "  This will clone the repository 'Nop.Plugin.Opensoft.Testplugin' into 'src/Plugins',"
-  echo "  update the .gitignore file, and add the project to the solution file."
+  echo "    Clone the repository 'Nop.Plugin.Opensoft.Testplugin' into 'src/Plugins', update the .gitignore file, and add the project to the solution file."
+  echo
+  echo "  $0 --remove Testplugin"
+  echo "    Remove the repository 'Nop.Plugin.Opensoft.Testplugin', its .gitignore entry, and its solution file entry."
   exit 0
 fi
 
@@ -52,14 +55,18 @@ log "Changing to nopCommerce root directory: $NOPCOMMERCE_ROOT"
 cd "$NOPCOMMERCE_ROOT"
 
 # Check if a repository name argument is provided
-if [ -z "$1" ]; then
-  echo "Usage: $0 [--verbose] <repo-name>"
+if [ -z "$2" ] && [[ "$1" != "--remove" && "$1" != "-rm" ]]; then
+  echo "Usage: $0 [--verbose | -v] [--remove | -rm] <repo-name>"
   cd "$CURRENT_DIR"
   exit 1
 fi
 
 # Variables
-REPO_NAME=$1
+ACTION=$1
+REPO_NAME=$2
+if [[ "$ACTION" != "--remove" && "$ACTION" != "-rm" ]]; then
+  REPO_NAME=$1
+fi
 REPO_SLUG="Nop.Plugin.Opensoft.$REPO_NAME"
 RELATIVE_REPO_DIR="src/Plugins/$REPO_SLUG"
 CLONE_DIR=$(pwd)/$RELATIVE_REPO_DIR
@@ -67,11 +74,58 @@ GITIGNORE_PATH=$(pwd)/.gitignore
 SOLUTION_FILE=$(pwd)/NopCommerce.sln
 DEVOPS_PROJECT="FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Nop%20Plugins"
 
+log "Action: $ACTION"
 log "Repository name: $REPO_NAME"
 log "Repository slug: $REPO_SLUG"
 log "Clone directory: $CLONE_DIR"
 log "Gitignore path: $GITIGNORE_PATH"
 log "Solution file: $SOLUTION_FILE"
+
+# Handle removal
+if [[ "$ACTION" == "--remove" || "$ACTION" == "-rm" ]]; then
+  echo "Removing repository '$REPO_SLUG'..."
+
+  # Remove the folder
+  if [ -d "$CLONE_DIR" ]; then
+    log "Removing folder: $CLONE_DIR"
+    rm -rf "$CLONE_DIR"
+    echo "Folder '$CLONE_DIR' removed."
+  else
+    echo "Folder '$CLONE_DIR' does not exist."
+  fi
+
+  # Remove the .gitignore entry
+  if [ -f "$GITIGNORE_PATH" ]; then
+    log "Removing .gitignore entry for '$RELATIVE_REPO_DIR/'..."
+    sed -i "\|^$RELATIVE_REPO_DIR/$|d" "$GITIGNORE_PATH"
+    echo ".gitignore entry for '$RELATIVE_REPO_DIR/' removed."
+    log "Committing changes to .gitignore..."
+    cd $(dirname "$GITIGNORE_PATH")
+    git add .gitignore
+    git commit -m "Removed .gitignore entry for '$RELATIVE_REPO_DIR/'"
+    echo "Changes committed to .gitignore."
+  else
+    echo "Error: .gitignore file not found at '$GITIGNORE_PATH'."
+  fi
+
+  # Remove the project from the solution file
+  if [ -f "$SOLUTION_FILE" ]; then
+    log "Removing project '$CLONE_DIR/$REPO_SLUG.csproj' from solution file..."
+    dotnet sln "$SOLUTION_FILE" remove "$CLONE_DIR/$REPO_SLUG.csproj"
+    if [ $? -eq 0 ]; then
+      echo "Project '$REPO_SLUG' removed from the solution successfully."
+    else
+      echo "Error: Failed to remove project '$REPO_SLUG' from the solution."
+    fi
+  else
+    echo "Error: Solution file '$SOLUTION_FILE' not found."
+  fi
+
+  # Exit after removal
+  cd "$CURRENT_DIR"
+  echo "Repository '$REPO_SLUG' removed successfully."
+  exit 0
+fi
 
 # Clone the repository into ./src/Plugins/
 echo "Cloning repository '$REPO_SLUG'..."
