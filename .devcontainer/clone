@@ -6,6 +6,21 @@ if [[ "$(pwd)" != *"/nopCommerce"* ]]; then
   exit 1
 fi
 
+# Check for help option
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+  echo "Usage: $0 <repo-name>"
+  echo "This script clones a repository into the 'src/Plugins' directory of the nopCommerce project."
+  echo "clone also updates the .gitignore file to ignore the cloned repository."
+  echo "Lastly, clone updates the solution file to include the new project."
+  echo
+  echo "Arguments:"
+  echo "  <repo-name>   The last word of the name of the repository to clone (e.g., 'Testplugin' for the repo 'Nop.Plugin.Opensoft.Testplugin')."
+  echo
+  echo "Options:"
+  echo "  -h, --help    Show this help message and exit."
+  exit 0
+fi
+
 # Save the current working directory
 CURRENT_DIR=$(pwd)
 
@@ -25,6 +40,7 @@ REPO_SLUG="Nop.Plugin.Opensoft.$REPO_NAME"
 RELATIVE_REPO_DIR="src/Plugins/$REPO_SLUG"
 CLONE_DIR=$(pwd)/$RELATIVE_REPO_DIR
 GITIGNORE_PATH=$(pwd)/.gitignore
+SOLUTION_FILE=$(pwd)/NopCommerce.sln
 
 DEVOPS_PROJECT="FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Nop%20Plugins"
 
@@ -69,6 +85,19 @@ else
   echo "Error: .gitignore file not found at '$GITIGNORE_PATH'."
   cd "$CURRENT_DIR"
   exit 1
+fi
+
+# Add the cloned project to the solution file
+if [ -f "$SOLUTION_FILE" ]; then
+  echo "Adding '$RELATIVE_REPO_DIR' to the solution file '$SOLUTION_FILE'..."
+  dotnet sln "$SOLUTION_FILE" add "$CLONE_DIR/$REPO_SLUG.csproj"
+  if [ $? -eq 0 ]; then
+    echo "Project '$REPO_SLUG' added to the solution successfully."
+  else
+    echo "Error: Failed to add project '$REPO_SLUG' to the solution."
+  fi
+else
+  echo "Error: Solution file '$SOLUTION_FILE' not found."
 fi
 
 # Return to the original working directory
