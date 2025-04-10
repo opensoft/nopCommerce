@@ -48,6 +48,12 @@ if [ -f "$GITIGNORE_PATH" ]; then
   
   # Add the cloned folder to .gitignore if not already present
   if ! grep -q "^$RELATIVE_REPO_DIR/$" "$GITIGNORE_PATH"; then
+    # Ensure the file ends with a newline
+    if [[ -s "$GITIGNORE_PATH" && $(tail -c1 "$GITIGNORE_PATH" | wc -l) -eq 0 ]]; then
+      echo "" >> "$GITIGNORE_PATH"
+    fi
+    
+    # Add our entry with a trailing newline
     echo "$RELATIVE_REPO_DIR/" >> "$GITIGNORE_PATH"
     echo ".gitignore updated with '$REPO_SLUG/'."
     
