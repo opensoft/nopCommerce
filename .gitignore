@@ -216,3 +216,4 @@ src/Tests/Nop.Tests/Connections.resx
 
 # Dev container environment files
 .devcontainer/.env
+src/Plugins/Nop.Plugin.Opensoft.SEO/
