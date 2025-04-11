@@ -217,3 +217,4 @@ src/Tests/Nop.Tests/Connections.resx
 # Dev container environment files
 .devcontainer/.env
 src/Plugins/Nop.Plugin.Opensoft.IRS-Core/
+src/Plugins/Nop.Plugin.Opensoft.AttributeSKU/
