@@ -206,15 +206,13 @@ src/Presentation/Nop.Web/wwwroot/sitemaps/*
 src/packages/*
 src/Tests/Nop.Tests/Connections.resx
 
-
+# Dev container environment files
+.devcontainer/.env
+.gitignore
 
 ######################################
 ##                                  ##
 ##   Plugin repos for nopCommerce   ##
 ##                                  ##      
-######################################src/Plugins/Nop.Plugin.Opensoft.SEO/
-
-# Dev container environment files
-.devcontainer/.env
-src/Plugins/Nop.Plugin.Opensoft.IRS-Core/
-src/Plugins/Nop.Plugin.Opensoft.AttributeSKU/
+######################################
+src/Plugins/Nop.Plugin.Opensoft.IRSStore/
