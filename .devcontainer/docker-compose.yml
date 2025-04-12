@@ -9,11 +9,13 @@ services:
                 IDE_USER: "${USER:-defaultuser}"  # Default to 'defaultuser' if USER is not set
                 IDE_UID: ${USERID:-1000}         # Default to '1000' if USERID is not set
                 IDE_GID: ${GROUPID:-1000}        # Default to '1000' if GROUPID is not set
+                DEBUG: "${DEBUG:-false}"         # Default to 'false' if DEBUG is not set
         user: "${USER:-defaultuser}"
         environment:
             - USER=${USER:-defaultuser}
             - USERID=${USERID:-1000}
             - GROUPID=${GROUPID:-1000}
+            - DEBUG=${DEBUG:-false}             # Pass DEBUG to the container environment
         container_name: nopcommerce
         ports:
             - "8080:8080"
@@ -43,9 +45,6 @@ services:
             MSSQL_PID: "Express"
         networks:
             - nop-net
-
-volumes:
-  nopcommerce_data:    
 
 networks:
   nop-net:

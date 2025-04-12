@@ -1,0 +1,5 @@
+services:
+  nopcommerce_web:
+    build:
+      args:
+        DEBUG: "true"
