@@ -174,4 +174,4 @@ RUN dotnet build /workspace/src/NopCommerce.sln --no-incremental -c Debug
 # This is important to avoid permission issues when removing this folder using the entrypoint script which runs under the IDE_USER
 USER ${IDE_USER}
 RUN mkdir ./bin && cp -r ./src/* ./bin/
-CMD ["./.devcontainer/entrypoint.sh"]
+CMD ["./.devcontainer/containers/Nop.Web/entrypoint.sh"]

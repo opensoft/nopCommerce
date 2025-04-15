@@ -52,6 +52,9 @@ if [[ "$1" == "-h" || "$1" == "--help" ]]; then
   echo
   echo "  clone --site <site-name>"
   echo "      Clone all repositories for a site listed in the PluginList file under the corresponding site folder."
+  echo
+  echo "  clone -rm --site <site-name>"
+  echo "      Remove all repositories for a site listed in the PluginList file under the corresponding site folder."
   exit 0
 fi
 
@@ -85,7 +88,7 @@ if [[ "$1" == "--verbose" || "$1" == "-v" ]] && [ -z "$2" ]; then
   exit 1
 fi
 
-if [[ "$1" == "--remove" || "$1" == "-rm" ]] && [ -z "$2" ]; then
+if [[ "$1" == "--remove" || "$1" == "-rm" ]] && [ -z "$2" ]]; then
   echo "Usage: clone [--verbose | -v] [--remove | -rm] [--site | -s] <repo-name>"
   cd "$CURRENT_DIR"
   exit 1
@@ -195,6 +198,83 @@ if [[ "$1" == "--site" || "$1" == "-s" ]]; then
   done < "$PLUGIN_LIST_FILE"
 
   echo "All repositories for site '$SITE_NAME' listed in $PLUGIN_LIST_FILE processed."
+  exit 0
+fi
+
+# Check for the --site or -s option with --remove or -rm
+if [[ "$1" == "--remove" || "$1" == "-rm" ]] && [[ "$2" == "--site" || "$2" == "-s" ]]; then
+  # Ensure a site name is provided
+  if [ -z "$3" ]; then
+    echo "Error: The --site or -s option must be followed by a site name."
+    echo "Usage: clone -rm --site <site-name>"
+    exit 1
+  fi
+
+  SITE_NAME=$3
+  PLUGIN_LIST_FILE="$NOPCOMMERCE_ROOT/.devcontainer/Sites/$SITE_NAME/PluginList.txt"  # Include .txt extension
+
+  # Ensure the PluginList.txt file exists
+  if [ ! -f "$PLUGIN_LIST_FILE" ]; then
+    echo "Error: PluginList.txt file not found at '$PLUGIN_LIST_FILE'."
+    exit 1
+  fi
+
+  echo "Removing repositories for site '$SITE_NAME' listed in $PLUGIN_LIST_FILE..."
+  
+  # Read each line in the PluginList.txt file
+  while IFS= read -r REPO_NAME || [ -n "$REPO_NAME" ]; do
+    # Skip empty lines or lines starting with #
+    if [[ -z "$REPO_NAME" || "$REPO_NAME" == \#* ]]; then
+      continue
+    fi
+
+    REPO_SLUG="$REPO_NAME"
+    RELATIVE_REPO_DIR="src/Plugins/$REPO_SLUG"
+    CLONE_DIR=$(pwd)/$RELATIVE_REPO_DIR
+    GITIGNORE_PATH=$(pwd)/.gitignore
+    SOLUTION_FILE=$(pwd)/src/NopCommerce.sln
+
+    echo "Removing repository '$REPO_SLUG'..."
+
+    # Remove the folder
+    if [ -d "$CLONE_DIR" ]; then
+      log "Removing folder: $CLONE_DIR"
+      rm -rf "$CLONE_DIR"
+      echo "Folder '$CLONE_DIR' removed."
+    else
+      echo "Folder '$CLONE_DIR' does not exist."
+    fi
+
+    # Remove the .gitignore entry
+    if [ -f "$GITIGNORE_PATH" ]; then
+      log "Removing .gitignore entry for '$RELATIVE_REPO_DIR/'..."
+      sed -i "\|^$RELATIVE_REPO_DIR/$|d" "$GITIGNORE_PATH"
+      echo ".gitignore entry for '$RELATIVE_REPO_DIR/' removed."
+      log "Committing changes to .gitignore..."
+      cd $(dirname "$GITIGNORE_PATH")
+      git add .gitignore
+      git commit -m "Removed .gitignore entry for '$RELATIVE_REPO_DIR/'"
+      echo "Changes committed to .gitignore."
+    else
+      echo "Error: .gitignore file not found at '$GITIGNORE_PATH'."
+    fi
+
+    # Remove the project from the solution file
+    if [ -f "$SOLUTION_FILE" ]; then
+      log "Removing project '$CLONE_DIR/$REPO_SLUG.csproj' from solution file..."
+      dotnet sln "$SOLUTION_FILE" remove "$CLONE_DIR/$REPO_SLUG.csproj"
+      if [ $? -eq 0 ]; then
+        echo "Project '$REPO_SLUG' removed from the solution successfully."
+      else
+        echo "Error: Failed to remove project '$REPO_SLUG' from the solution."
+      fi
+    else
+      echo "Error: Solution file '$SOLUTION_FILE' not found."
+    fi
+
+  done < "$PLUGIN_LIST_FILE"
+
+  echo "All repositories for site '$SITE_NAME' listed in $PLUGIN_LIST_FILE have been removed."
   exit 0
 fi
 

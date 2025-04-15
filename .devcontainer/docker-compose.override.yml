@@ -1,5 +1,5 @@
 services:
-  nopcommerce_web:
+  nop.sol.web:
     build:
       args:
-        DEBUG: "true"
+        DEBUG: "${DEBUG:-true}"  # Allow overriding DEBUG from environment

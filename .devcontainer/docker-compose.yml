@@ -1,10 +1,11 @@
-name: nopDevStack
+name: nop.sol.Stack
 version: "3.7"
 services:
-    nopcommerce_web:
+    nop.sol.web:
+        container_name: nop.sol.web
         build:
             context: ..
-            dockerfile: ./.devcontainer/Dockerfile
+            dockerfile: ./.devcontainer/containers/Nop.Web/Dockerfile
             args:
                 IDE_USER: "${USER:-defaultuser}"  # Default to 'defaultuser' if USER is not set
                 IDE_UID: ${USERID:-1000}         # Default to '1000' if USERID is not set
@@ -16,15 +17,14 @@ services:
             - USERID=${USERID:-1000}
             - GROUPID=${GROUPID:-1000}
             - DEBUG=${DEBUG:-false}             # Pass DEBUG to the container environment
-        container_name: nopcommerce
         ports:
             - "8080:8080"
         depends_on:
-            nopcommerce_database:
+            nop.sol.mssql:                       # Updated service name to match changes
                 condition: service_started
                 required: true
         networks:
-            - nop-net
+            - nop.sol.net                        # Removed trailing colon
         volumes:
             - type: bind
               source: ../src
@@ -32,20 +32,18 @@ services:
             - type: bind
               source: ../.devcontainer
               target: /workspace/.devcontainer
-            # - type: bind
-            #   source: ./.vscode
-            #   target: /workspace/.vscode 
-        # user: vscode
-    nopcommerce_database:
+    nop.sol.mssql:                             # Updated service name to match changes
         image: "mcr.microsoft.com/mssql/server:2019-latest"
-        container_name: nopcommerce_mssql_server
+        container_name: nop.sol.mssql            # Updated container name to match changes
         environment:
-            SA_PASSWORD: "nopCommerce_db_password"
+            SA_PASSWORD: "${MSSQL_SA_PASSWORD:-YourStrong@Passw0rd}"  # Default password if not set
             ACCEPT_EULA: "Y"
             MSSQL_PID: "Express"
         networks:
-            - nop-net
+            - nop.sol.net                        # Updated network name to match changes
+        ports:
+            - "1433:1433"  # Expose SQL Server port
 
 networks:
-  nop-net:
+  nop.sol.net:
     driver: bridge

@@ -1,6 +1,21 @@
+name: Nop.VS.Stack
 services:
   nop.web:
     image: ${DOCKER_REGISTRY-}nopweb
+    container_name: nop.vs.web
     build:
       context: .
       dockerfile: Presentation/Nop.Web/Dockerfile
+  nopcommerce_database:
+      image: "mcr.microsoft.com/mssql/server:2019-latest"
+      container_name: nop.vs.mssql
+      environment:
+          SA_PASSWORD: "nopCommerce_db_password"
+          ACCEPT_EULA: "Y"
+          MSSQL_PID: "Express"
+      networks:
+          - nop-vs-net
+
+networks:
+  nop-vs-net:
+    driver: bridge
