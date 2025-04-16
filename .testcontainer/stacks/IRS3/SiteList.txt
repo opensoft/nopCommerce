@@ -1,3 +1,0 @@
-IRS,InkRouter Site
-DES, Davinci eCommerce Store
-DFS, Davinci Fulfillment Site
