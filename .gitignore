@@ -215,3 +215,6 @@ src/Tests/Nop.Tests/Connections.resx
 ##   Plugin repos for nopCommerce   ##
 ##                                  ##      
 ######################################
+
+# DevContainer override files
+.devcontainer/docker-compose.override.yml
